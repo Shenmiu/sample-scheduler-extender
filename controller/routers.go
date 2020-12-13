@@ -9,7 +9,7 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
-	schedulerapi "k8s.io/kubernetes/pkg/scheduler/api"
+	extender "k8s.io/kube-scheduler/extender/v1"
 )
 
 func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -19,10 +19,10 @@ func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 func Filter(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var buf bytes.Buffer
 	body := io.TeeReader(r.Body, &buf)
-	var extenderArgs schedulerapi.ExtenderArgs
-	var extenderFilterResult *schedulerapi.ExtenderFilterResult
+	var extenderArgs extender.ExtenderArgs
+	var extenderFilterResult *extender.ExtenderFilterResult
 	if err := json.NewDecoder(body).Decode(&extenderArgs); err != nil {
-		extenderFilterResult = &schedulerapi.ExtenderFilterResult{
+		extenderFilterResult = &extender.ExtenderFilterResult{
 			Error: err.Error(),
 		}
 	} else {
@@ -41,10 +41,10 @@ func Filter(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 func Prioritize(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var buf bytes.Buffer
 	body := io.TeeReader(r.Body, &buf)
-	var extenderArgs schedulerapi.ExtenderArgs
-	var hostPriorityList *schedulerapi.HostPriorityList
+	var extenderArgs extender.ExtenderArgs
+	var hostPriorityList *extender.HostPriorityList
 	if err := json.NewDecoder(body).Decode(&extenderArgs); err != nil {
-		hostPriorityList = &schedulerapi.HostPriorityList{}
+		hostPriorityList = &extender.HostPriorityList{}
 	} else {
 		hostPriorityList = prioritize(extenderArgs)
 	}
@@ -57,5 +57,3 @@ func Prioritize(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		w.Write(response)
 	}
 }
-
-// func Bind(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {}

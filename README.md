@@ -22,9 +22,9 @@ spec:
     - --bind-address=127.0.0.1
     - --kubeconfig=/etc/kubernetes/scheduler.conf
     - --leader-elect=true
-    - --config=/etc/kubernetes/scheduler-extender.yaml
+    - --config=/etc/kubernetes/scheduler-config.yaml
     - --v=9
-    image: gcr.azk8s.cn/google_containers/kube-scheduler:v1.16.2
+    image: gcr.azk8s.cn/google_containers/kube-scheduler:v1.19.2
     imagePullPolicy: IfNotPresent
     livenessProbe:
       failureThreshold: 8
@@ -43,11 +43,8 @@ spec:
     - mountPath: /etc/kubernetes/scheduler.conf
       name: kubeconfig
       readOnly: true
-    - mountPath: /etc/kubernetes/scheduler-extender.yaml
-      name: extender
-      readOnly: true
-    - mountPath: /etc/kubernetes/scheduler-extender-policy.yaml
-      name: extender-policy
+    - mountPath: /etc/kubernetes/scheduler-config.yaml
+      name: scheduler-config
       readOnly: true
   hostNetwork: true
   priorityClassName: system-cluster-critical
@@ -57,22 +54,15 @@ spec:
       type: FileOrCreate
     name: kubeconfig
   - hostPath:
-      path: /etc/kubernetes/scheduler-extender.yaml
+      path: /etc/kubernetes/scheduler-config.yaml
       type: FileOrCreate
-    name: extender
-  - hostPath:
-      path: /etc/kubernetes/scheduler-extender-policy.yaml
-      type: FileOrCreate
-    name: extender-policy
+    name: scheduler-config
 status: {}
 ```
 
-You must mount `scheduler-extender.yaml` 和 `scheduler-extender-policy.yaml` to Pod.
+You must mount `scheduler-extender.yaml` to Pod.
 
 ## Notes
-
-- Because `k8s.io/kubernetes` pkg is not intended to be used with go get,so we need use go modules replace to depend these modules, so you must replace `go.mod` to your local k8s path .
-    ![](manifests/images/pkg-tips.png)
 
 - Prioritize webhook won't be triggered if it's running on an one-node cluster. As it makes no sense to run priorities logic when there is only one candidate:
 
